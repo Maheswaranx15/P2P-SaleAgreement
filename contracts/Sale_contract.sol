@@ -4,10 +4,8 @@ pragma solidity 0.8.22;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Sale_P2P is AccessControl {
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-
-    enum State {
+contract SaleP2P is AccessControl {
+    enum AgreementState {
         Created,
         Paid,
         Delivered,
@@ -20,13 +18,13 @@ contract Sale_P2P is AccessControl {
         address seller;
         address arbitrator;
         uint256 amount;
-        State state;
+        AgreementState state;
         IERC20 token;
     }
 
     mapping(bytes32 => Agreement) public agreements;
 
-    event AgreementCreated(
+    event AgreementInitiated(
         bytes32 agreementId,
         address buyer,
         address seller,
@@ -42,18 +40,17 @@ contract Sale_P2P is AccessControl {
     modifier onlyParties(bytes32 agreementId) {
         require(
             msg.sender == agreements[agreementId].buyer || msg.sender == agreements[agreementId].seller,
-            "Not a party"
+            "Invalid Party"
         );
         _;
     }
 
     modifier onlyArbitrator(bytes32 agreementId) {
-        require(msg.sender == agreements[agreementId].arbitrator, "Not the arbitrator");
+        require(msg.sender == agreements[agreementId].arbitrator, "Invalid arbitrator");
         _;
     }
 
     constructor() {
-        _setupRole(ADMIN_ROLE, msg.sender);
     }
 
     function createAgreement(
@@ -63,23 +60,23 @@ contract Sale_P2P is AccessControl {
         IERC20 _token
     ) external {
         bytes32 agreementId = keccak256(abi.encodePacked(msg.sender, _seller, _arbitrator, _amount, _token));
-        require(agreements[agreementId].state == State.Created, "Agreement already exists");
+        require(agreements[agreementId].state == AgreementState.Created, "Agreement already exists");
 
         agreements[agreementId] = Agreement({
             buyer: msg.sender,
             seller: _seller,
             arbitrator: _arbitrator,
             amount: _amount,
-            state: State.Created,
+            state: AgreementState.Created,
             token: _token
         });
 
-        emit AgreementCreated(agreementId, msg.sender, _seller, _arbitrator, _amount, _token);
+        emit AgreementInitiated(agreementId, msg.sender, _seller, _arbitrator, _amount, _token);
     }
 
     function pay(bytes32 agreementId) external payable onlyParties(agreementId) {
         Agreement storage agreement = agreements[agreementId];
-        require(agreement.state == State.Created, "Invalid state");
+        require(agreement.state == AgreementState.Created, "Invalid state");
 
         if (address(agreement.token) == address(0)) {
             require(msg.value == agreement.amount, "Incorrect amount sent");
@@ -88,30 +85,30 @@ contract Sale_P2P is AccessControl {
             require(agreement.token.transferFrom(msg.sender, address(this), agreement.amount), "Token transfer failed");
         }
 
-        agreement.state = State.Paid;
+        agreement.state = AgreementState.Paid;
     }
 
     function deliverItem(bytes32 agreementId) external onlyParties(agreementId) {
         Agreement storage agreement = agreements[agreementId];
-        require(agreement.state == State.Paid, "Invalid state");
+        require(agreement.state == AgreementState.Paid, "Invalid state");
 
-        agreement.state = State.Delivered;
+        agreement.state = AgreementState.Delivered;
 
         emit ItemDelivered(agreementId);
     }
 
     function raiseDispute(bytes32 agreementId) external onlyParties(agreementId) {
         Agreement storage agreement = agreements[agreementId];
-        require(agreement.state == State.Paid || agreement.state == State.Delivered, "Invalid state");
+        require(agreement.state == AgreementState.Paid || agreement.state == AgreementState.Delivered, "Invalid state");
 
-        agreement.state = State.Disputed;
+        agreement.state = AgreementState.Disputed;
 
         emit DisputeRaised(agreementId);
     }
 
     function resolveDispute(bytes32 agreementId, bool buyerWins) external onlyArbitrator(agreementId) {
         Agreement storage agreement = agreements[agreementId];
-        require(agreement.state == State.Disputed, "Invalid state");
+        require(agreement.state == AgreementState.Disputed, "Invalid state");
 
         if (buyerWins) {
             if (address(agreement.token) == address(0)) {
@@ -127,14 +124,14 @@ contract Sale_P2P is AccessControl {
             }
         }
 
-        agreement.state = State.Resolved;
+        agreement.state = AgreementState.Resolved;
 
         emit DisputeResolved(agreementId);
     }
 
     function releasePayment(bytes32 agreementId) external onlyParties(agreementId) {
         Agreement storage agreement = agreements[agreementId];
-        require(agreement.state == State.Delivered, "Invalid state");
+        require(agreement.state == AgreementState.Delivered, "Invalid state");
 
         if (address(agreement.token) == address(0)) {
             payable(agreement.seller).transfer(agreement.amount);
@@ -142,7 +139,7 @@ contract Sale_P2P is AccessControl {
             require(agreement.token.transfer(agreement.seller, agreement.amount), "Token transfer failed");
         }
 
-        agreement.state = State.Resolved;
+        agreement.state = AgreementState.Resolved;
 
         emit PaymentReleased(agreementId);
     }
