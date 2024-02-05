@@ -50,102 +50,102 @@ describe("EscrowContract", function () {
     expect(agreement.token).to.equal(token.address);
   });
 
-  // it("should pay for an agreement", async function () {
-  //   await token
-  //     .connect(owner)
-  //     .transfer(buyer.address, ethers.utils.parseEther("1"));
-  //   var tx = await escrowContract
-  //     .connect(buyer)
-  //     .createAgreement(
-  //       seller.address,
-  //       arbitrator.address,
-  //       ethers.utils.parseEther("1"),
-  //       token.address
-  //     );
-  //   var txn = await tx.wait();
-  //   const agreementId = txn.events[0].args["agreementId"];
-  //   await token
-  //     .connect(buyer)
-  //     .approve(escrowContract.address, ethers.utils.parseEther("1"));
-  //   await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
-  //   const agreement = await escrowContract.agreements(agreementId);
+  it("should pay for an agreement", async function () {
+    await token
+      .connect(owner)
+      .transfer(buyer.address, ethers.utils.parseEther("1"));
+    var tx = await escrowContract
+      .connect(buyer)
+      .createAgreement(
+        seller.address,
+        arbitrator.address,
+        ethers.utils.parseEther("1"),
+        token.address
+      );
+    var txn = await tx.wait();
+    const agreementId = txn.events[0].args["agreementId"];
+    await token
+      .connect(buyer)
+      .approve(escrowContract.address, ethers.utils.parseEther("1"));
+    await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
+    const agreement = await escrowContract.agreements(agreementId);
 
-  //   expect(agreement.state).to; 
-  // });
+    expect(agreement.state).to; 
+  });
 
-  // it("should deliver an item", async function () {
-  //   await token
-  //     .connect(owner)
-  //     .transfer(buyer.address, ethers.utils.parseEther("1"));
-  //   var tx = await escrowContract
-  //     .connect(buyer)
-  //     .createAgreement(
-  //       seller.address,
-  //       arbitrator.address,
-  //       ethers.utils.parseEther("1"),
-  //       token.address
-  //     );
-  //   var txn = await tx.wait();
-  //   const agreementId = txn.events[0].args["agreementId"];
-  //   await token
-  //     .connect(buyer)
-  //     .approve(escrowContract.address, ethers.utils.parseEther("1"));
-  //   await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
-  //   await escrowContract.connect(seller).deliverItem(agreementId);
-  //   const agreement = await escrowContract.agreements(agreementId);
+  it("should deliver an item", async function () {
+    await token
+      .connect(owner)
+      .transfer(buyer.address, ethers.utils.parseEther("1"));
+    var tx = await escrowContract
+      .connect(buyer)
+      .createAgreement(
+        seller.address,
+        arbitrator.address,
+        ethers.utils.parseEther("1"),
+        token.address
+      );
+    var txn = await tx.wait();
+    const agreementId = txn.events[0].args["agreementId"];
+    await token
+      .connect(buyer)
+      .approve(escrowContract.address, ethers.utils.parseEther("1"));
+    await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
+    await escrowContract.connect(seller).deliverItem(agreementId);
+    const agreement = await escrowContract.agreements(agreementId);
 
-  //   expect(agreement.state).to.equal(2); 
-  // });
+    expect(agreement.state).to.equal(2); 
+  });
 
-  // it("should releasePayment for an agreement", async function () {
-  //   await token
-  //     .connect(owner)
-  //     .transfer(buyer.address, ethers.utils.parseEther("1"));
-  //   var tx = await escrowContract
-  //     .connect(buyer)
-  //     .createAgreement(
-  //       seller.address,
-  //       arbitrator.address,
-  //       ethers.utils.parseEther("1"),
-  //       token.address
-  //     );
-  //   var txn = await tx.wait();
-  //   const agreementId = txn.events[0].args["agreementId"];
-  //   await token
-  //     .connect(buyer)
-  //     .approve(escrowContract.address, ethers.utils.parseEther("1"));
-  //   await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
-  //   await escrowContract.connect(seller).deliverItem(agreementId);
-  //   await escrowContract.connect(buyer).releasePayment(agreementId);
-  //   const agreement = await escrowContract.agreements(agreementId);
+  it("should releasePayment for an agreement", async function () {
+    await token
+      .connect(owner)
+      .transfer(buyer.address, ethers.utils.parseEther("1"));
+    var tx = await escrowContract
+      .connect(buyer)
+      .createAgreement(
+        seller.address,
+        arbitrator.address,
+        ethers.utils.parseEther("1"),
+        token.address
+      );
+    var txn = await tx.wait();
+    const agreementId = txn.events[0].args["agreementId"];
+    await token
+      .connect(buyer)
+      .approve(escrowContract.address, ethers.utils.parseEther("1"));
+    await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
+    await escrowContract.connect(seller).deliverItem(agreementId);
+    await escrowContract.connect(buyer).releasePayment(agreementId);
+    const agreement = await escrowContract.agreements(agreementId);
 
-  //   expect(agreement.state).to.equal(4); 
-  // });
+    expect(agreement.state).to.equal(4); 
+  });
 
-  // it("should resolve a dispute", async function () {
-  //   await token
-  //     .connect(owner)
-  //     .transfer(buyer.address, ethers.utils.parseEther("1"));
-  //   var tx = await escrowContract
-  //     .connect(buyer)
-  //     .createAgreement(
-  //       seller.address,
-  //       arbitrator.address,
-  //       ethers.utils.parseEther("1"),
-  //       token.address
-  //     );
-  //   var txn = await tx.wait();
-  //   const agreementId = txn.events[0].args["agreementId"];
-  //   await token
-  //     .connect(buyer)
-  //     .approve(escrowContract.address, ethers.utils.parseEther("1"));
-  //   await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
-  //   await escrowContract.connect(buyer).raiseDispute(agreementId);
-  //   var agreement = await escrowContract.agreements(agreementId);
-  //   expect(agreement.state).to.equal(3); 
-  //   await escrowContract.connect(arbitrator).resolveDispute(agreementId, true); 
-  //   agreement = await escrowContract.agreements(agreementId);
-  //   expect(agreement.state).to.equal(4); 
-  // });
+  it("should resolve a dispute", async function () {
+    await token
+      .connect(owner)
+      .transfer(buyer.address, ethers.utils.parseEther("1"));
+    var tx = await escrowContract
+      .connect(buyer)
+      .createAgreement(
+        seller.address,
+        arbitrator.address,
+        ethers.utils.parseEther("1"),
+        token.address
+      );
+    var txn = await tx.wait();
+    const agreementId = txn.events[0].args["agreementId"];
+    await token
+      .connect(buyer)
+      .approve(escrowContract.address, ethers.utils.parseEther("1"));
+    await escrowContract.connect(buyer).pay(agreementId, { value: 0 });
+    await escrowContract.connect(buyer).raiseDispute(agreementId);
+    var agreement = await escrowContract.agreements(agreementId);
+    expect(agreement.state).to.equal(3); 
+    await escrowContract.connect(arbitrator).resolveDispute(agreementId, true); 
+    agreement = await escrowContract.agreements(agreementId);
+    expect(agreement.state).to.equal(4); 
+  });
 
 });
